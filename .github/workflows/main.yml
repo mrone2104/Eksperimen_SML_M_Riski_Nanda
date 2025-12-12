@@ -1,0 +1,29 @@
+name: Preprocessing Dataset Otomatis
+
+on:
+  push:
+    paths:
+      - "preprocessing/**"
+      - "ac-01_telco_customer_behavior_raw/**"
+  workflow_dispatch:
+
+jobs:
+  preprocess:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: pip install pandas scikit-learn openpyxl
+
+      - name: Run preprocessing
+        run: |
+          cd preprocessing
+          python automate_M_Riski_Nanda.py
