@@ -2,6 +2,21 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler, OneHotEncoder
 from sklearn.model_selection import train_test_split
 
+
+# =====================================================
+# TAMBAHAN SAJA: REMOVE OUTLIERS (IQR) — SESUAI NOTEBOOK
+# =====================================================
+def remove_outliers_iqr(df, cols):
+    for col in cols:
+        Q1 = df[col].quantile(0.25)
+        Q3 = df[col].quantile(0.75)
+        IQR = Q3 - Q1
+        lower = Q1 - 1.5 * IQR
+        upper = Q3 + 1.5 * IQR
+        df = df[(df[col] >= lower) & (df[col] <= upper)]
+    return df
+
+
 def preprocess_data(input_path, output_path):
     # 1. LOAD DATA
     df = pd.read_excel(input_path)
@@ -15,19 +30,24 @@ def preprocess_data(input_path, output_path):
     target_col = 'target_offer'
     id_col = 'customer_id'
 
-    # 2. HANDLE NILAI NEGATIF
+    # 2. HANDLE NILAI NEGATIF (SESUAI NOTEBOOK)
     df[numerical_cols] = df[numerical_cols].apply(pd.to_numeric, errors='coerce')
     for col in numerical_cols:
         df[col] = df[col].mask(df[col] < 0).fillna(df[col].median())
 
-    # 3. LABEL ENCODING (target & id)
+    # =================================================
+    # 2.5 OUTLIER (IQR) — INI YANG DIMINTA REVIEWER
+    # =================================================
+    df = remove_outliers_iqr(df, numerical_cols)
+
+    # 3. LABEL ENCODING (TARGET & ID)
     le_target = LabelEncoder()
     le_customer = LabelEncoder()
 
     df['target_offer_encoded'] = le_target.fit_transform(df[target_col])
     df['customer_id_encoded'] = le_customer.fit_transform(df[id_col])
 
-    # 4. SCALING NUMERIK
+    # 4. SCALING NUMERIK (MINMAX — SAMA DENGAN NOTEBOOK)
     scaler = MinMaxScaler()
     df[numerical_cols] = scaler.fit_transform(df[numerical_cols])
 
@@ -41,7 +61,7 @@ def preprocess_data(input_path, output_path):
         index=df.index
     )
 
-    # 6. GABUNGKAN SEMUA
+    # 6. GABUNGKAN SEMUA (SESUAI AUTOMATE ASLI)
     df_final = pd.concat([
         df[['customer_id_encoded'] + numerical_cols],
         ohe_df,
